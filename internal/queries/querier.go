@@ -10,7 +10,7 @@ import (
 )
 
 type Querier interface {
-	AddAnnouncement(ctx context.Context, arg AddAnnouncementParams) (int64, error)
+	AddAnnouncement(ctx context.Context, arg AddAnnouncementParams) (sql.Result, error)
 	AddPhoto(ctx context.Context, arg AddPhotoParams) error
 	Ban(ctx context.Context, tgid sql.NullInt64) error
 	CreateUser(ctx context.Context, arg CreateUserParams) error

@@ -17,8 +17,8 @@ import (
 	"os"
 	"os/signal"
 
-	"github.com/jackc/pgx/v5/pgxpool"
-	_ "github.com/mattn/go-sqlite3"
+	_ "github.com/go-sql-driver/mysql"
+
 	"github.com/mymmrac/telego"
 	tu "github.com/mymmrac/telego/telegoutil"
 )
@@ -33,18 +33,7 @@ func main() {
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer cancel()
 
-	dbpool, err := pgxpool.New(ctx, config.AppConfig.DatabaseDNS)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Unable to create connection pool: %v\n", err)
-		os.Exit(1)
-	}
-	defer dbpool.Close()
-
-	if err := dbpool.Ping(ctx); err != nil {
-		panic(err)
-	}
-
-	db, err := sql.Open("sqlite3", "file:base.db")
+	db, err := sql.Open("mysql", config.AppConfig.DatabaseDNS)
 	if err != nil {
 		panic(err)
 	}

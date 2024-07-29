@@ -39,7 +39,13 @@ func (c *Announcement) Add(ctx context.Context, tgid int64, txt string, chatID i
 
 	params.Chatid = sqlChatID
 
-	return c.queries.AddAnnouncement(ctx, params)
+	result, err := c.queries.AddAnnouncement(ctx, params)
+
+	if err != nil {
+		return 0, err
+	}
+
+	return result.LastInsertId()
 
 }
 

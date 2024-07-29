@@ -58,3 +58,15 @@ services:
     networks:
       - net
 
+  mysql_db:
+    image: mysql:8
+    restart: always
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: secret
+      MYSQL_DATABASE: stage
+      MYSQL_USER: example
+      MYSQL_PASSWORD: secret2
+    volumes:
+      - ./dbdata:/var/lib/mysql/

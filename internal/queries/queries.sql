@@ -2,9 +2,8 @@
 INSERT INTO users (
   tgID, login, name, createData, chatID
 ) VALUES (
-  ?1, ?2, ?3, ?4, ?5
-) ON CONFLICT (tgID)
-DO UPDATE SET login = ?2, name = ?3, chatID = ?5;
+  ?, ?, ?, ?, ?
+) ON DUPLICATE KEY UPDATE login = VALUES(login), name = VALUES(name), chatID = VALUES(chatID);
 
 -- name: GetUserInfo :one
 SELECT login, name, ban 
@@ -15,9 +14,8 @@ WHERE tgID = ?;
 INSERT INTO chatStatuses (
   tgID, status, annID
 ) VALUES (
-  ?1, ?2, ?3
-) ON CONFLICT (tgID)
-DO UPDATE SET status = ?2, annID = ?3;
+  ?, ?, ?
+) ON DUPLICATE KEY UPDATE status = VALUES(status), annID = VALUES(annID);
 
 -- name: GetStatus :one
 SELECT status 
@@ -29,13 +27,12 @@ SELECT annID
 FROM chatStatuses
 WHERE tgID = ?;
 
--- name: AddAnnouncement :one
+-- name: AddAnnouncement :execresult
 INSERT INTO announcements (
   tgID, txt, chatID
   ) VALUES (
-    ?1, ?2, ?3
-  )
-RETURNING id;
+    ?, ?, ?
+  );
 
 -- name: GetAnnouncement :one
 SELECT txt, publicID

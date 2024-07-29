@@ -1,7 +1,7 @@
 -- +goose Up
 -- +goose StatementBegin
 CREATE TABLE users (
-    id INTEGER PRIMARY KEY,
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
     tgID BIGINT UNIQUE,
     login TEXT NOT NULL,
     name TEXT NOT NULL,
@@ -10,13 +10,17 @@ CREATE TABLE users (
     chatID BIGINT,
     ban BOOLEAN
 );
+-- +goose StatementEnd
+-- +goose StatementBegin
 CREATE TABLE chatStatuses (
     tgID BIGINT UNIQUE,
     status BIGINT,
     annID BIGINT
 );
+-- +goose StatementEnd
+-- +goose StatementBegin
 CREATE TABLE announcements (
-    id INTEGER PRIMARY KEY,
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
     tgID BIGINT,
     chatID BIGINT,
     txt TEXT,
@@ -30,6 +34,10 @@ CREATE TABLE announcements (
 -- +goose Down
 -- +goose StatementBegin
 DROP TABLE users;
+-- +goose StatementEnd
+-- +goose StatementBegin
 DROP TABLE chatStatuses;
+-- +goose StatementEnd
+-- +goose StatementBegin
 DROP TABLE announcements;
 -- +goose StatementEnd

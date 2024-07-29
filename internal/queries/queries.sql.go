@@ -10,13 +10,12 @@ import (
 	"database/sql"
 )
 
-const addAnnouncement = `-- name: AddAnnouncement :one
+const addAnnouncement = `-- name: AddAnnouncement :execresult
 INSERT INTO announcements (
   tgID, txt, chatID
   ) VALUES (
-    ?1, ?2, ?3
+    ?, ?, ?
   )
-RETURNING id
 `
 
 type AddAnnouncementParams struct {
@@ -25,11 +24,8 @@ type AddAnnouncementParams struct {
 	Chatid sql.NullInt64  `json:"chatid"`
 }
 
-func (q *Queries) AddAnnouncement(ctx context.Context, arg AddAnnouncementParams) (int64, error) {
-	row := q.db.QueryRowContext(ctx, addAnnouncement, arg.Tgid, arg.Txt, arg.Chatid)
-	var id int64
-	err := row.Scan(&id)
-	return id, err
+func (q *Queries) AddAnnouncement(ctx context.Context, arg AddAnnouncementParams) (sql.Result, error) {
+	return q.db.ExecContext(ctx, addAnnouncement, arg.Tgid, arg.Txt, arg.Chatid)
 }
 
 const addPhoto = `-- name: AddPhoto :exec
@@ -63,9 +59,8 @@ const createUser = `-- name: CreateUser :exec
 INSERT INTO users (
   tgID, login, name, createData, chatID
 ) VALUES (
-  ?1, ?2, ?3, ?4, ?5
-) ON CONFLICT (tgID)
-DO UPDATE SET login = ?2, name = ?3, chatID = ?5
+  ?, ?, ?, ?, ?
+) ON DUPLICATE KEY UPDATE login = VALUES(login), name = VALUES(name), chatID = VALUES(chatID)
 `
 
 type CreateUserParams struct {
@@ -220,9 +215,8 @@ const setStatus = `-- name: SetStatus :exec
 INSERT INTO chatStatuses (
   tgID, status, annID
 ) VALUES (
-  ?1, ?2, ?3
-) ON CONFLICT (tgID)
-DO UPDATE SET status = ?2, annID = ?3
+  ?, ?, ?
+) ON DUPLICATE KEY UPDATE status = VALUES(status), annID = VALUES(annID)
 `
 
 type SetStatusParams struct {
