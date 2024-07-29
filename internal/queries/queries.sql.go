@@ -7,27 +7,26 @@ package queries
 
 import (
 	"context"
-
-	"github.com/jackc/pgx/v5/pgtype"
+	"database/sql"
 )
 
 const addAnnouncement = `-- name: AddAnnouncement :one
 INSERT INTO announcements (
   tgID, txt, chatID
   ) VALUES (
-    $1, $2, $3
+    ?1, ?2, ?3
   )
 RETURNING id
 `
 
 type AddAnnouncementParams struct {
-	Tgid   pgtype.Int8 `json:"tgid"`
-	Txt    pgtype.Text `json:"txt"`
-	Chatid pgtype.Int8 `json:"chatid"`
+	Tgid   sql.NullInt64  `json:"tgid"`
+	Txt    sql.NullString `json:"txt"`
+	Chatid sql.NullInt64  `json:"chatid"`
 }
 
 func (q *Queries) AddAnnouncement(ctx context.Context, arg AddAnnouncementParams) (int64, error) {
-	row := q.db.QueryRow(ctx, addAnnouncement, arg.Tgid, arg.Txt, arg.Chatid)
+	row := q.db.QueryRowContext(ctx, addAnnouncement, arg.Tgid, arg.Txt, arg.Chatid)
 	var id int64
 	err := row.Scan(&id)
 	return id, err
@@ -35,80 +34,68 @@ func (q *Queries) AddAnnouncement(ctx context.Context, arg AddAnnouncementParams
 
 const addPhoto = `-- name: AddPhoto :exec
 UPDATE announcements
-SET fileID = $2
-WHERE id = $1
+SET fileID = ?
+WHERE id = ?
 `
 
 type AddPhotoParams struct {
-	ID     int64       `json:"id"`
-	Fileid pgtype.Text `json:"fileid"`
+	Fileid sql.NullString `json:"fileid"`
+	ID     int64          `json:"id"`
 }
 
 func (q *Queries) AddPhoto(ctx context.Context, arg AddPhotoParams) error {
-	_, err := q.db.Exec(ctx, addPhoto, arg.ID, arg.Fileid)
+	_, err := q.db.ExecContext(ctx, addPhoto, arg.Fileid, arg.ID)
 	return err
 }
 
 const ban = `-- name: Ban :exec
 UPDATE users
 SET ban = true
-WHERE tgID = $1
+WHERE tgID = ?
 `
 
-func (q *Queries) Ban(ctx context.Context, tgid pgtype.Int8) error {
-	_, err := q.db.Exec(ctx, ban, tgid)
+func (q *Queries) Ban(ctx context.Context, tgid sql.NullInt64) error {
+	_, err := q.db.ExecContext(ctx, ban, tgid)
 	return err
 }
 
-const createUser = `-- name: CreateUser :one
+const createUser = `-- name: CreateUser :exec
 INSERT INTO users (
   tgID, login, name, createData, chatID
 ) VALUES (
-  $1, $2, $3, $4, $5
+  ?1, ?2, ?3, ?4, ?5
 ) ON CONFLICT (tgID)
-DO UPDATE SET login = $2, name = $3, chatID = $5
-RETURNING id, tgid, login, name, createdata, phone, chatid, ban
+DO UPDATE SET login = ?2, name = ?3, chatID = ?5
 `
 
 type CreateUserParams struct {
-	Tgid       pgtype.Int8      `json:"tgid"`
-	Login      string           `json:"login"`
-	Name       string           `json:"name"`
-	Createdata pgtype.Timestamp `json:"createdata"`
-	Chatid     pgtype.Int8      `json:"chatid"`
+	Tgid       sql.NullInt64 `json:"tgid"`
+	Login      string        `json:"login"`
+	Name       string        `json:"name"`
+	Createdata sql.NullTime  `json:"createdata"`
+	Chatid     sql.NullInt64 `json:"chatid"`
 }
 
-func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
-	row := q.db.QueryRow(ctx, createUser,
+func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) error {
+	_, err := q.db.ExecContext(ctx, createUser,
 		arg.Tgid,
 		arg.Login,
 		arg.Name,
 		arg.Createdata,
 		arg.Chatid,
 	)
-	var i User
-	err := row.Scan(
-		&i.ID,
-		&i.Tgid,
-		&i.Login,
-		&i.Name,
-		&i.Createdata,
-		&i.Phone,
-		&i.Chatid,
-		&i.Ban,
-	)
-	return i, err
+	return err
 }
 
 const getAnnId = `-- name: GetAnnId :one
 SELECT annID 
 FROM chatStatuses
-WHERE tgID = $1
+WHERE tgID = ?
 `
 
-func (q *Queries) GetAnnId(ctx context.Context, tgid pgtype.Int8) (pgtype.Int8, error) {
-	row := q.db.QueryRow(ctx, getAnnId, tgid)
-	var annid pgtype.Int8
+func (q *Queries) GetAnnId(ctx context.Context, tgid sql.NullInt64) (sql.NullInt64, error) {
+	row := q.db.QueryRowContext(ctx, getAnnId, tgid)
+	var annid sql.NullInt64
 	err := row.Scan(&annid)
 	return annid, err
 }
@@ -116,21 +103,21 @@ func (q *Queries) GetAnnId(ctx context.Context, tgid pgtype.Int8) (pgtype.Int8, 
 const getAnnouncement = `-- name: GetAnnouncement :one
 SELECT txt, publicID
 FROM announcements
-WHERE tgID = $1 AND id = $2
+WHERE tgID = ? AND id = ?
 `
 
 type GetAnnouncementParams struct {
-	Tgid pgtype.Int8 `json:"tgid"`
-	ID   int64       `json:"id"`
+	Tgid sql.NullInt64 `json:"tgid"`
+	ID   int64         `json:"id"`
 }
 
 type GetAnnouncementRow struct {
-	Txt      pgtype.Text `json:"txt"`
-	Publicid pgtype.Int8 `json:"publicid"`
+	Txt      sql.NullString `json:"txt"`
+	Publicid sql.NullInt64  `json:"publicid"`
 }
 
 func (q *Queries) GetAnnouncement(ctx context.Context, arg GetAnnouncementParams) (GetAnnouncementRow, error) {
-	row := q.db.QueryRow(ctx, getAnnouncement, arg.Tgid, arg.ID)
+	row := q.db.QueryRowContext(ctx, getAnnouncement, arg.Tgid, arg.ID)
 	var i GetAnnouncementRow
 	err := row.Scan(&i.Txt, &i.Publicid)
 	return i, err
@@ -139,20 +126,20 @@ func (q *Queries) GetAnnouncement(ctx context.Context, arg GetAnnouncementParams
 const getAnnouncementOnAdmMsgID = `-- name: GetAnnouncementOnAdmMsgID :one
 SELECT txt, fileID, chatID, id, tgID, publicID
 FROM announcements
-WHERE admMsgID = $1
+WHERE admMsgID = ?
 `
 
 type GetAnnouncementOnAdmMsgIDRow struct {
-	Txt      pgtype.Text `json:"txt"`
-	Fileid   pgtype.Text `json:"fileid"`
-	Chatid   pgtype.Int8 `json:"chatid"`
-	ID       int64       `json:"id"`
-	Tgid     pgtype.Int8 `json:"tgid"`
-	Publicid pgtype.Int8 `json:"publicid"`
+	Txt      sql.NullString `json:"txt"`
+	Fileid   sql.NullString `json:"fileid"`
+	Chatid   sql.NullInt64  `json:"chatid"`
+	ID       int64          `json:"id"`
+	Tgid     sql.NullInt64  `json:"tgid"`
+	Publicid sql.NullInt64  `json:"publicid"`
 }
 
-func (q *Queries) GetAnnouncementOnAdmMsgID(ctx context.Context, admmsgid pgtype.Int8) (GetAnnouncementOnAdmMsgIDRow, error) {
-	row := q.db.QueryRow(ctx, getAnnouncementOnAdmMsgID, admmsgid)
+func (q *Queries) GetAnnouncementOnAdmMsgID(ctx context.Context, admmsgid sql.NullInt64) (GetAnnouncementOnAdmMsgIDRow, error) {
+	row := q.db.QueryRowContext(ctx, getAnnouncementOnAdmMsgID, admmsgid)
 	var i GetAnnouncementOnAdmMsgIDRow
 	err := row.Scan(
 		&i.Txt,
@@ -168,12 +155,12 @@ func (q *Queries) GetAnnouncementOnAdmMsgID(ctx context.Context, admmsgid pgtype
 const getStatus = `-- name: GetStatus :one
 SELECT status 
 FROM chatStatuses
-WHERE tgID = $1
+WHERE tgID = ?
 `
 
-func (q *Queries) GetStatus(ctx context.Context, tgid pgtype.Int8) (pgtype.Int8, error) {
-	row := q.db.QueryRow(ctx, getStatus, tgid)
-	var status pgtype.Int8
+func (q *Queries) GetStatus(ctx context.Context, tgid sql.NullInt64) (sql.NullInt64, error) {
+	row := q.db.QueryRowContext(ctx, getStatus, tgid)
+	var status sql.NullInt64
 	err := row.Scan(&status)
 	return status, err
 }
@@ -181,17 +168,17 @@ func (q *Queries) GetStatus(ctx context.Context, tgid pgtype.Int8) (pgtype.Int8,
 const getUserInfo = `-- name: GetUserInfo :one
 SELECT login, name, ban 
 FROM users
-WHERE tgID = $1
+WHERE tgID = ?
 `
 
 type GetUserInfoRow struct {
-	Login string      `json:"login"`
-	Name  string      `json:"name"`
-	Ban   pgtype.Bool `json:"ban"`
+	Login string       `json:"login"`
+	Name  string       `json:"name"`
+	Ban   sql.NullBool `json:"ban"`
 }
 
-func (q *Queries) GetUserInfo(ctx context.Context, tgid pgtype.Int8) (GetUserInfoRow, error) {
-	row := q.db.QueryRow(ctx, getUserInfo, tgid)
+func (q *Queries) GetUserInfo(ctx context.Context, tgid sql.NullInt64) (GetUserInfoRow, error) {
+	row := q.db.QueryRowContext(ctx, getUserInfo, tgid)
 	var i GetUserInfoRow
 	err := row.Scan(&i.Login, &i.Name, &i.Ban)
 	return i, err
@@ -199,66 +186,63 @@ func (q *Queries) GetUserInfo(ctx context.Context, tgid pgtype.Int8) (GetUserInf
 
 const setAdminMsgID = `-- name: SetAdminMsgID :exec
 UPDATE announcements
-SET admMsgId = $1
-WHERE id = $2
+SET admMsgId = ?
+WHERE id = ?
 `
 
 type SetAdminMsgIDParams struct {
-	Admmsgid pgtype.Int8 `json:"admmsgid"`
-	ID       int64       `json:"id"`
+	Admmsgid sql.NullInt64 `json:"admmsgid"`
+	ID       int64         `json:"id"`
 }
 
 func (q *Queries) SetAdminMsgID(ctx context.Context, arg SetAdminMsgIDParams) error {
-	_, err := q.db.Exec(ctx, setAdminMsgID, arg.Admmsgid, arg.ID)
+	_, err := q.db.ExecContext(ctx, setAdminMsgID, arg.Admmsgid, arg.ID)
 	return err
 }
 
 const setPublicID = `-- name: SetPublicID :exec
 UPDATE announcements
-SET publicID = $1
-WHERE id = $2
+SET publicID = ?
+WHERE id = ?
 `
 
 type SetPublicIDParams struct {
-	Publicid pgtype.Int8 `json:"publicid"`
-	ID       int64       `json:"id"`
+	Publicid sql.NullInt64 `json:"publicid"`
+	ID       int64         `json:"id"`
 }
 
 func (q *Queries) SetPublicID(ctx context.Context, arg SetPublicIDParams) error {
-	_, err := q.db.Exec(ctx, setPublicID, arg.Publicid, arg.ID)
+	_, err := q.db.ExecContext(ctx, setPublicID, arg.Publicid, arg.ID)
 	return err
 }
 
-const setStatus = `-- name: SetStatus :one
+const setStatus = `-- name: SetStatus :exec
 INSERT INTO chatStatuses (
   tgID, status, annID
 ) VALUES (
-  $1, $2, $3
+  ?1, ?2, ?3
 ) ON CONFLICT (tgID)
-DO UPDATE SET status = $2, annID = $3
-RETURNING tgid, status, annid
+DO UPDATE SET status = ?2, annID = ?3
 `
 
 type SetStatusParams struct {
-	Tgid   pgtype.Int8 `json:"tgid"`
-	Status pgtype.Int8 `json:"status"`
-	Annid  pgtype.Int8 `json:"annid"`
+	Tgid   sql.NullInt64 `json:"tgid"`
+	Status sql.NullInt64 `json:"status"`
+	Annid  sql.NullInt64 `json:"annid"`
 }
 
-func (q *Queries) SetStatus(ctx context.Context, arg SetStatusParams) (Chatstatus, error) {
-	row := q.db.QueryRow(ctx, setStatus, arg.Tgid, arg.Status, arg.Annid)
-	var i Chatstatus
-	err := row.Scan(&i.Tgid, &i.Status, &i.Annid)
-	return i, err
+func (q *Queries) SetStatus(ctx context.Context, arg SetStatusParams) error {
+	_, err := q.db.ExecContext(ctx, setStatus, arg.Tgid, arg.Status, arg.Annid)
+	return err
 }
 
 const unBan = `-- name: UnBan :exec
 UPDATE users
 SET ban = false
-WHERE tgID = $1
+WHERE tgID = ?
 `
 
-func (q *Queries) UnBan(ctx context.Context, tgid pgtype.Int8) error {
-	_, err := q.db.Exec(ctx, unBan, tgid)
+func (q *Queries) UnBan(ctx context.Context, tgid sql.NullInt64) error {
+	_, err := q.db.ExecContext(ctx, unBan, tgid)
 	return err
 }

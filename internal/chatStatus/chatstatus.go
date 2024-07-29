@@ -7,8 +7,6 @@ import (
 	"main/internal/domain"
 	"main/internal/models"
 	"main/internal/queries"
-
-	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type ChatStatus struct {
@@ -21,52 +19,29 @@ func NewChatStatus(queries *queries.Queries) domain.ChatStatus {
 	}
 }
 
-func (c *ChatStatus) Save(ctx context.Context, tgid int64, statusCode models.StatusCode, ann_id int64) error {
+func (c *ChatStatus) Save(ctx context.Context, tgID int64, statusCode models.StatusCode, annID int64) error {
 
 	var params queries.SetStatusParams
-	var pgTgid pgtype.Int8
-	err := pgTgid.Scan(tgid)
 
-	if err != nil {
-		return err
-	}
+	sqlTgID := sql.NullInt64{Int64: tgID, Valid: true}
 
-	var pgStatus pgtype.Int8
-	err = pgStatus.Scan(int64(statusCode))
+	sqlPgStatus := sql.NullInt64{Int64: int64(statusCode), Valid: true}
 
-	if err != nil {
-		return err
-	}
+	sqlAnnID := sql.NullInt64{Int64: annID, Valid: true}
 
-	var pgAnnid pgtype.Int8
-	err = pgAnnid.Scan(ann_id)
+	params.Tgid = sqlTgID
+	params.Status = sqlPgStatus
+	params.Annid = sqlAnnID
 
-	if err != nil {
-		return err
-	}
+	return c.queries.SetStatus(ctx, params)
 
-	params.Tgid = pgTgid
-	params.Status = pgStatus
-	params.Annid = pgAnnid
-
-	_, err = c.queries.SetStatus(ctx, params)
-	if err != nil {
-		log.Println("Save status error:", err)
-	}
-
-	return err
 }
 
-func (c *ChatStatus) Get(ctx context.Context, tgid int64) models.StatusCode {
+func (c *ChatStatus) Get(ctx context.Context, tgID int64) models.StatusCode {
 
-	var pgTgid pgtype.Int8
-	err := pgTgid.Scan(tgid)
+	sqlTgID := sql.NullInt64{Int64: tgID, Valid: true}
 
-	if err != nil {
-		log.Println("Value error:", err)
-	}
-
-	status, err := c.queries.GetStatus(ctx, pgTgid)
+	status, err := c.queries.GetStatus(ctx, sqlTgID)
 
 	if err != nil && err != sql.ErrNoRows {
 		log.Println("Get status error:", err)
@@ -76,16 +51,11 @@ func (c *ChatStatus) Get(ctx context.Context, tgid int64) models.StatusCode {
 
 }
 
-func (c *ChatStatus) GetAnnId(ctx context.Context, tgid int64) int64 {
+func (c *ChatStatus) GetAnnId(ctx context.Context, tgID int64) int64 {
 
-	var pgTgid pgtype.Int8
-	err := pgTgid.Scan(tgid)
+	sqlTgID := sql.NullInt64{Int64: tgID, Valid: true}
 
-	if err != nil {
-		log.Println("Value error:", err)
-	}
-
-	id, err := c.queries.GetAnnId(ctx, pgTgid)
+	id, err := c.queries.GetAnnId(ctx, sqlTgID)
 
 	if err != nil && err != sql.ErrNoRows {
 		log.Println("Get announcement id:", err)

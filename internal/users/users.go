@@ -2,12 +2,12 @@ package users
 
 import (
 	"context"
+	"database/sql"
 	"main/internal/domain"
 	"main/internal/queries"
 
 	"time"
 
-	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/mymmrac/telego"
 	tu "github.com/mymmrac/telego/telegoutil"
 )
@@ -26,54 +26,46 @@ func NewUsersClient(queries *queries.Queries, loginAdmin string, bot *telego.Bot
 	}
 }
 
-func (c *Users) Register(ctx context.Context, tgid int64, login string, name string, date int, chatID int64) error {
+func (c *Users) Register(ctx context.Context, tgID int64, login string, name string, date int, chatID int64) error {
 
 	var params queries.CreateUserParams
 
-	var timeStamp pgtype.Timestamp
-	timeStamp.Scan(time.Unix(int64(date), 0))
+	sqlTgID := sql.NullInt64{Int64: tgID, Valid: true}
 
-	var pgChatID pgtype.Int8
-	pgChatID.Scan(chatID)
+	sqlTimeStamp := sql.NullTime{Time: time.Unix(int64(date), 0), Valid: true}
 
-	var pgTgid pgtype.Int8
-	pgTgid.Scan(tgid)
+	sqlChatID := sql.NullInt64{Int64: chatID, Valid: true}
 
-	params.Tgid = pgTgid
+	params.Tgid = sqlTgID
 	params.Login = login
 	params.Name = name
-	params.Createdata = timeStamp
-	params.Chatid = pgChatID
+	params.Createdata = sqlTimeStamp
+	params.Chatid = sqlChatID
 
-	_, err := c.queries.CreateUser(ctx, params)
+	return c.queries.CreateUser(ctx, params)
 
-	return err
 }
 
 func (c *Users) GetUserInfo(ctx context.Context, tgID int64) (name string, login string, ban bool, err error) {
 
-	var pgTgID pgtype.Int8
-	pgTgID.Scan(tgID)
+	sqlTgID := sql.NullInt64{Int64: tgID, Valid: true}
 
-	userInfo, err := c.queries.GetUserInfo(ctx, pgTgID)
+	userInfo, err := c.queries.GetUserInfo(ctx, sqlTgID)
 	return userInfo.Name, userInfo.Login, userInfo.Ban.Bool, err
 }
 
 func (c *Users) Ban(ctx context.Context, tgID int64) error {
 
-	var pgTgID pgtype.Int8
-	pgTgID.Scan(tgID)
+	sqlTgID := sql.NullInt64{Int64: tgID, Valid: true}
 
-	return c.queries.Ban(ctx, pgTgID)
+	return c.queries.Ban(ctx, sqlTgID)
 
 }
 
 func (c *Users) UnBan(ctx context.Context, tgID int64) error {
 
-	var pgTgID pgtype.Int8
-	pgTgID.Scan(tgID)
-
-	return c.queries.UnBan(ctx, pgTgID)
+	sqlTgID := sql.NullInt64{Int64: tgID, Valid: true}
+	return c.queries.UnBan(ctx, sqlTgID)
 
 }
 

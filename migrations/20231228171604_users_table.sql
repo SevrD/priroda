@@ -1,7 +1,7 @@
 -- +goose Up
 -- +goose StatementBegin
 CREATE TABLE users (
-    id BIGSERIAL PRIMARY KEY,
+    id INTEGER PRIMARY KEY,
     tgID BIGINT UNIQUE,
     login TEXT NOT NULL,
     name TEXT NOT NULL,
@@ -16,7 +16,7 @@ CREATE TABLE chatStatuses (
     annID BIGINT
 );
 CREATE TABLE announcements (
-    id BIGSERIAL PRIMARY KEY,
+    id INTEGER PRIMARY KEY,
     tgID BIGINT,
     chatID BIGINT,
     txt TEXT,

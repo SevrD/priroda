@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 
 	"main/internal/announcement"
@@ -17,6 +18,7 @@ import (
 	"os/signal"
 
 	"github.com/jackc/pgx/v5/pgxpool"
+	_ "github.com/mattn/go-sqlite3"
 	"github.com/mymmrac/telego"
 	tu "github.com/mymmrac/telego/telegoutil"
 )
@@ -41,7 +43,13 @@ func main() {
 	if err := dbpool.Ping(ctx); err != nil {
 		panic(err)
 	}
-	queriesСlient := queries.New(dbpool)
+
+	db, err := sql.Open("sqlite3", "file:base.db")
+	if err != nil {
+		panic(err)
+	}
+
+	queriesСlient := queries.New(db)
 
 	chat := chatstatus.NewChatStatus(queriesСlient)
 

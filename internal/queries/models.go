@@ -4,23 +4,4 @@
 
 package queries
 
-import (
-	"github.com/jackc/pgx/v5/pgtype"
-)
-
-type Chatstatus struct {
-	Tgid   pgtype.Int8 `json:"tgid"`
-	Status pgtype.Int8 `json:"status"`
-	Annid  pgtype.Int8 `json:"annid"`
-}
-
-type User struct {
-	ID         int64            `json:"id"`
-	Tgid       pgtype.Int8      `json:"tgid"`
-	Login      string           `json:"login"`
-	Name       string           `json:"name"`
-	Createdata pgtype.Timestamp `json:"createdata"`
-	Phone      pgtype.Text      `json:"phone"`
-	Chatid     pgtype.Int8      `json:"chatid"`
-	Ban        pgtype.Bool      `json:"ban"`
-}
+import ()

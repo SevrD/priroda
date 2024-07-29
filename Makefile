@@ -32,10 +32,10 @@ down-service:
 	docker compose down app
 
 migration-up:
-	goose -dir ./migrations postgres "postgres://admin:MyPWD56821@localhost:5433/priroda?sslmode=disable" up
+	goose -dir ./migrations sqlite3 base.db up
 
 migration-status:
 	goose -dir ./migrations postgres "postgres://admin:MyPWD56821@postgres:5433/priroda?sslmode=disable" status
 
 migration-down:
-	goose -dir ./migrations postgres "postgres://admin:MyPWD56821@localhost:5433/priroda?sslmode=disable" down
+	goose -dir ./migrations sqlite3 "postgres://admin:MyPWD56821@localhost:5433/priroda?sslmode=disable" down

@@ -2,6 +2,7 @@ package announcement
 
 import (
 	"context"
+	"database/sql"
 	"main/internal/domain"
 	"main/internal/models"
 	"main/internal/queries"
@@ -23,33 +24,35 @@ func (c *Announcement) Add(ctx context.Context, tgid int64, txt string, chatID i
 
 	var params queries.AddAnnouncementParams
 
-	var pgTgid pgtype.Int8
-	pgTgid.Scan(tgid)
+	var sqlID sql.NullInt64
+	sqlID.Scan(tgid)
 
-	params.Tgid = pgTgid
+	params.Tgid = sqlID
 
-	var pgTxt pgtype.Text
-	pgTxt.Scan(txt)
+	var sqlTxt sql.NullString
+	sqlTxt.Scan(txt)
 
-	params.Txt = pgTxt
+	params.Txt = sqlTxt
 
-	var pgChatID pgtype.Int8
-	pgChatID.Scan(chatID)
+	var sqlChatID sql.NullInt64
+	sqlChatID.Scan(chatID)
 
-	params.Chatid = pgChatID
+	params.Chatid = sqlChatID
 
 	return c.queries.AddAnnouncement(ctx, params)
 
 }
 
-func (c *Announcement) GetAnnouncement(ctx context.Context, tgid int64, ann_id int64) (txt string, publicID int64, err error) {
+func (c *Announcement) GetAnnouncement(ctx context.Context, tgID int64, annID int64) (txt string, publicID int64, err error) {
 
 	var pgTgid pgtype.Int8
-	pgTgid.Scan(tgid)
+	pgTgid.Scan(tgID)
+
+	sqlID := sql.NullInt64{Int64: tgID, Valid: true}
 
 	GetAnnouncementParams := queries.GetAnnouncementParams{
-		Tgid: pgTgid,
-		ID:   ann_id,
+		Tgid: sqlID,
+		ID:   annID,
 	}
 
 	result, err := c.queries.GetAnnouncement(ctx, GetAnnouncementParams)
@@ -62,14 +65,13 @@ func (c *Announcement) GetAnnouncement(ctx context.Context, tgid int64, ann_id i
 
 }
 
-func (c *Announcement) SetAdminMsgID(ctx context.Context, id int64, adm_msg_id int64) error {
+func (c *Announcement) SetAdminMsgID(ctx context.Context, id int64, admMsgID int64) error {
 
-	var pgAdmMsgID pgtype.Int8
-	pgAdmMsgID.Scan(adm_msg_id)
+	sqlAdmMsgID := sql.NullInt64{Int64: admMsgID, Valid: true}
 
 	params := queries.SetAdminMsgIDParams{
 		ID:       id,
-		Admmsgid: pgAdmMsgID,
+		Admmsgid: sqlAdmMsgID,
 	}
 
 	return c.queries.SetAdminMsgID(ctx, params)
@@ -77,20 +79,18 @@ func (c *Announcement) SetAdminMsgID(ctx context.Context, id int64, adm_msg_id i
 
 func (c *Announcement) AddPhoto(ctx context.Context, annID int64, fileID string) error {
 
-	var pgTxt pgtype.Text
-	pgTxt.Scan(fileID)
+	sqlAdmMsgID := sql.NullString{String: fileID, Valid: true}
 
-	photoParams := queries.AddPhotoParams{ID: annID, Fileid: pgTxt}
+	photoParams := queries.AddPhotoParams{ID: annID, Fileid: sqlAdmMsgID}
 
 	return c.queries.AddPhoto(ctx, photoParams)
 }
 
 func (c *Announcement) GetAnnouncementOnAdmMsgID(ctx context.Context, admMsgID int64) (*models.AnnouncementInfo, error) {
 
-	var pgAdmMsgID pgtype.Int8
-	pgAdmMsgID.Scan(admMsgID)
+	sqlAdmMsgID := sql.NullInt64{Int64: admMsgID, Valid: true}
 
-	result, err := c.queries.GetAnnouncementOnAdmMsgID(ctx, pgAdmMsgID)
+	result, err := c.queries.GetAnnouncementOnAdmMsgID(ctx, sqlAdmMsgID)
 
 	if err != nil {
 		return nil, err
@@ -110,12 +110,11 @@ func (c *Announcement) GetAnnouncementOnAdmMsgID(ctx context.Context, admMsgID i
 
 func (c *Announcement) SetPublicID(ctx context.Context, id int64, publicID int64) error {
 
-	var pgPublicID pgtype.Int8
-	pgPublicID.Scan(publicID)
+	sqlPublicID := sql.NullInt64{Int64: publicID, Valid: true}
 
 	params := queries.SetPublicIDParams{
 		ID:       id,
-		Publicid: pgPublicID,
+		Publicid: sqlPublicID,
 	}
 
 	return c.queries.SetPublicID(ctx, params)

@@ -6,24 +6,23 @@ package queries
 
 import (
 	"context"
-
-	"github.com/jackc/pgx/v5/pgtype"
+	"database/sql"
 )
 
 type Querier interface {
 	AddAnnouncement(ctx context.Context, arg AddAnnouncementParams) (int64, error)
 	AddPhoto(ctx context.Context, arg AddPhotoParams) error
-	Ban(ctx context.Context, tgid pgtype.Int8) error
-	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
-	GetAnnId(ctx context.Context, tgid pgtype.Int8) (pgtype.Int8, error)
+	Ban(ctx context.Context, tgid sql.NullInt64) error
+	CreateUser(ctx context.Context, arg CreateUserParams) error
+	GetAnnId(ctx context.Context, tgid sql.NullInt64) (sql.NullInt64, error)
 	GetAnnouncement(ctx context.Context, arg GetAnnouncementParams) (GetAnnouncementRow, error)
-	GetAnnouncementOnAdmMsgID(ctx context.Context, admmsgid pgtype.Int8) (GetAnnouncementOnAdmMsgIDRow, error)
-	GetStatus(ctx context.Context, tgid pgtype.Int8) (pgtype.Int8, error)
-	GetUserInfo(ctx context.Context, tgid pgtype.Int8) (GetUserInfoRow, error)
+	GetAnnouncementOnAdmMsgID(ctx context.Context, admmsgid sql.NullInt64) (GetAnnouncementOnAdmMsgIDRow, error)
+	GetStatus(ctx context.Context, tgid sql.NullInt64) (sql.NullInt64, error)
+	GetUserInfo(ctx context.Context, tgid sql.NullInt64) (GetUserInfoRow, error)
 	SetAdminMsgID(ctx context.Context, arg SetAdminMsgIDParams) error
 	SetPublicID(ctx context.Context, arg SetPublicIDParams) error
-	SetStatus(ctx context.Context, arg SetStatusParams) (Chatstatus, error)
-	UnBan(ctx context.Context, tgid pgtype.Int8) error
+	SetStatus(ctx context.Context, arg SetStatusParams) error
+	UnBan(ctx context.Context, tgid sql.NullInt64) error
 }
 
 var _ Querier = (*Queries)(nil)
