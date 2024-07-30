@@ -1,8 +1,8 @@
 module main
 
-go 1.21
+go 1.22.3
 
-toolchain go1.21
+toolchain go1.22.4
 
 require github.com/jackc/pgx/v5 v5.5.0
 
