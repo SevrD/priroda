@@ -21,7 +21,6 @@ require (
 	github.com/grbit/go-json v0.11.0 // indirect
 	github.com/klauspost/compress v1.17.7 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.6 // indirect
-	github.com/mattn/go-sqlite3 v1.10.0
 	github.com/mymmrac/telego v0.30.2
 	github.com/savsgio/gotils v0.0.0-20240303185622-093b76447511 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
