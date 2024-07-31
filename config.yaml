@@ -1,7 +1,6 @@
-DATABASE_URL: example:secret2@/stage?parseTime=true
 botToken: 
-loginAdmin: sevrdima
-channelID: -1002187302672
+loginAdmin: SIGURNO
+channelID: -1001713366864
 rules: |
 
 
