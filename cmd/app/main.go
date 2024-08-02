@@ -52,6 +52,7 @@ func main() {
 	usersStorage := users.NewUsersClient(queriesСlient, config.AppConfig.LoginAdmin, bot)
 
 	core := core.NewCore(usersStorage, chat, announcement, bot)
+	core.SaveAdminChatID(config.AppConfig.ChatAdminID)
 	commands := commands.NewCommands(bot, usersStorage, chat, core)
 	callback := callback.NewCallBack(queriesСlient, announcement, usersStorage, bot, core, chat, commands)
 

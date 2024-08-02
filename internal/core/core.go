@@ -44,7 +44,7 @@ func (c *Core) SendMessageAfterAddAnnouncement(ctx context.Context, tgUserID int
 		return
 	}
 
-	text, err = c.addContacts(ctx, tgUserID, text)
+	text, err = c.AddContacts(ctx, tgUserID, text)
 
 	if err != nil {
 		log.Println("Get user info error:", err)
@@ -107,23 +107,30 @@ func (c *Core) SendMessageAfterAddAnnouncement(ctx context.Context, tgUserID int
 
 }
 
-func (c *Core) addContacts(ctx context.Context, tgUserID int64, txt string) (string, error) {
+func (c *Core) AddContacts(ctx context.Context, tgUserID int64, txt string) (string, error) {
+
+	return txt + "\n" + c.Contacts(ctx, tgUserID), nil
+
+}
+
+func (c *Core) Contacts(ctx context.Context, tgUserID int64) string {
+
+	var sign string
 
 	name, login, _, err := c.users.GetUserInfo(ctx, tgUserID)
 
 	if err != nil {
-		return "", err
+		return sign
 	}
 
-	if name != "" {
-		txt = txt + "\nАвтор: " + name
-	}
+	sign += "Автор: " + name
 
 	if login != "" {
-		txt = txt + "\nЛогин: @" + login
+		sign += "\nЛогин: @" + login
 	}
 
-	return txt, nil
+	return sign
+
 }
 
 func (c *Core) publicAnnouncement(ctx context.Context, Message telego.MaybeInaccessibleMessage) {
@@ -140,7 +147,7 @@ func (c *Core) publicAnnouncement(ctx context.Context, Message telego.MaybeInacc
 		return
 	}
 
-	text, err := c.addContacts(ctx, annInfo.TgID, annInfo.Text)
+	text, err := c.AddContacts(ctx, annInfo.TgID, annInfo.Text)
 
 	if err != nil {
 		log.Println("Get user info error:", err)

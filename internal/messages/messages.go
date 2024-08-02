@@ -2,11 +2,13 @@ package messages
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"main/internal/config"
 	"main/internal/domain"
 	"main/internal/models"
 	"strconv"
+	"unicode/utf8"
 
 	tu "github.com/mymmrac/telego/telegoutil"
 
@@ -38,16 +40,28 @@ func (m *Messages) Text(ctx context.Context, message *telego.Message) {
 	chatID := tu.ID(message.Chat.ID)
 	var ann_id int64
 	var err error
+	var fullText string
 	if len(message.Photo) > 0 && message.Caption != "" {
 		ann_id, err = m.announcement.Add(ctx, message.From.ID, message.Caption, message.Chat.ID)
-
 	} else if message.Text != "" {
+		fullText, err = m.core.AddContacts(ctx, message.From.ID, message.Text)
+		if err != nil {
+			log.Println("Add contacts to text error:", err)
+			m.users.SendError(message.Chat.ChatID())
+			return
+		}
+		lenCnt := utf8.RuneCountInString(m.core.Contacts(ctx, message.From.ID))
+		lenTxt := utf8.RuneCountInString(fullText)
+		if lenTxt > 1024-lenCnt-1 {
+			bidText(m, lenTxt-(1024-lenCnt-1), chatID)
+			return
+		}
 		ann_id, err = m.announcement.Add(ctx, message.From.ID, message.Text, message.Chat.ID)
 	} else {
 		return
 	}
 	if err != nil {
-		log.Println("Announcement add error:", err)
+		log.Println("Add announcement error:", err)
 		m.users.SendError(message.Chat.ChatID())
 		return
 	}
@@ -123,4 +137,25 @@ func (m *Messages) Number(ctx context.Context, message *telego.Message) {
 	}
 
 	m.chat.Save(ctx, message.From.ID, models.StatusCode(0), 0)
+}
+
+func declOfNum(number int, titles []string) string {
+	cases := []int{2, 0, 1, 1, 1, 2}
+	var currentCase int
+	if number%100 > 4 && number%100 < 20 {
+		currentCase = 2
+	} else if number%10 < 5 {
+		currentCase = cases[number%10]
+	} else {
+		currentCase = cases[5]
+	}
+	return titles[currentCase]
+}
+
+func bidText(m *Messages, len int, chatID telego.ChatID) {
+	titles := []string{"символ", "символа", "символов"}
+	text := "Размер текста не должен превышать 1024 символа. Необходимо уменьшить текст на %d %s и отправить в следующем сообщении. Более подробную информацию можно указать в комментариях опубликованного объявления."
+	text = fmt.Sprintf(text, len, declOfNum(len, titles))
+	message := tu.Message(chatID, text)
+	m.bot.SendMessage(message)
 }

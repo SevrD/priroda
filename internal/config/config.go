@@ -10,12 +10,11 @@ import (
 const pathToConfig = "config.yaml"
 
 type Config struct {
-	DatabaseDNS   string `yaml:"DATABASE_URL"`
-	BotToken      string `yaml:"botToken"`
-	BotAdminToken string `yaml:"botAdminToken"`
-	Rules         string `yaml:"rules"`
-	LoginAdmin    string `yaml:"loginAdmin"`
-	ChannelID     int64  `yaml:"channelID"`
+	BotToken    string `yaml:"botToken"`
+	Rules       string `yaml:"rules"`
+	LoginAdmin  string `yaml:"loginAdmin"`
+	ChannelID   int64  `yaml:"channelID"`
+	ChatAdminID int64  `yaml:"chatAdminID"`
 
 	// Services    struct {
 	// 	Loms           string `yaml:"loms"`
