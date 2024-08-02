@@ -72,7 +72,7 @@ func (c *Commands) Add(ctx context.Context, chatID telego.ChatID, tgID int64) {
 	}
 	message := tu.Message(
 		chatID,
-		"Напишите текст объявления одним сообщением без картинок. Не забудьте указать цену и контактную информацию.",
+		"Напишите текст объявления одним сообщением БЕЗ ФОТО. Не забудьте указать цену и контактную информацию.",
 	)
 
 	c.bot.SendMessage(message)

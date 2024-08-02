@@ -40,6 +40,8 @@ type Core interface {
 	SendMessageAfterAddAnnouncement(ctx context.Context, tgUserID int64, chatID telego.ChatID, fileID *string)
 	SendDefaultMessage(chatID telego.ChatID)
 	SaveAdminChatID(chatID int64)
+	AddContacts(ctx context.Context, tgUserID int64, txt string) (string, error)
+	Contacts(ctx context.Context, tgUserID int64) string
 }
 
 type CommandsWorker interface {
