@@ -106,18 +106,18 @@ func (m *Messages) Number(ctx context.Context, message *telego.Message) {
 
 	id, err := strconv.Atoi(message.Text)
 	if err != nil {
-		message := tu.Message(chatID, "Необходимо ввести целое число")
-		m.bot.SendMessage(message)
+		msg := tu.Message(chatID, "Необходимо ввести целое число")
+		m.bot.SendMessage(msg)
 	}
 
-	_, msgID, err := m.announcement.GetAnnouncement(ctx, message.From.ID, int64(id))
+	_, msgID, _, err := m.announcement.GetAnnouncement(ctx, message.From.ID, int64(id))
 
 	if err != nil {
-		message := tu.Message(
+		msg := tu.Message(
 			chatID,
 			"Объявление с таким номером не найдено или оно другого пользователя",
 		)
-		m.bot.SendMessage(message)
+		m.bot.SendMessage(msg)
 		return
 	}
 
@@ -126,13 +126,21 @@ func (m *Messages) Number(ctx context.Context, message *telego.Message) {
 	err = m.bot.DeleteMessage(deleteMessageParams)
 
 	if err != nil {
-		log.Println("Delete announcement error:", err)
-		m.users.SendError(message.Chat.ChatID())
+		if fmt.Sprint(err) == "telego: deleteMessage(): api: 400 \"Bad Request: message to delete not found\"" {
+			err = m.core.SendDeleteRequest(ctx, message.From.ID, int64(id), chatID)
+			if err != nil {
+				log.Println("Send delete request error:", err)
+				m.users.SendError(message.Chat.ChatID())
+			}
+			msg := tu.Message(chatID, "Прошло больше 48 часов с момента публикации. Запрос на удаление отправлен @"+m.users.LoginAdmin())
+			m.bot.SendMessage(msg)
+		} else {
+			log.Println("Delete announcement error:", err)
+			m.users.SendError(message.Chat.ChatID())
+		}
+
 	} else {
-		message := tu.Message(
-			chatID,
-			"Объявление удалено",
-		)
+		message := tu.Message(chatID, "Объявление удалено")
 		m.bot.SendMessage(message)
 	}
 

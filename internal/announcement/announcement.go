@@ -43,7 +43,7 @@ func (c *Announcement) Add(ctx context.Context, tgid int64, txt string, chatID i
 
 }
 
-func (c *Announcement) GetAnnouncement(ctx context.Context, tgID int64, annID int64) (txt string, publicID int64, err error) {
+func (c *Announcement) GetAnnouncement(ctx context.Context, tgID int64, annID int64) (txt string, publicID int64, fileID string, err error) {
 
 	var pgTgid pgtype.Int8
 	pgTgid.Scan(tgID)
@@ -58,10 +58,10 @@ func (c *Announcement) GetAnnouncement(ctx context.Context, tgID int64, annID in
 	result, err := c.queries.GetAnnouncement(ctx, GetAnnouncementParams)
 
 	if err != nil {
-		return "", 0, err
+		return "", 0, "", err
 	}
 
-	return result.Txt.String, result.Publicid.Int64, nil
+	return result.Txt.String, result.Publicid.Int64, result.Fileid.String, nil
 
 }
 

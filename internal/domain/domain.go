@@ -14,6 +14,7 @@ type Users interface {
 	Ban(ctx context.Context, tgID int64) error
 	UnBan(ctx context.Context, tgID int64) error
 	SendError(hatID telego.ChatID)
+	LoginAdmin() string
 }
 
 type ChatStatus interface {
@@ -24,7 +25,7 @@ type ChatStatus interface {
 
 type Announcement interface {
 	Add(ctx context.Context, tgid int64, txt string, chatID int64) (int64, error)
-	GetAnnouncement(ctx context.Context, tgid int64, id int64) (txt string, publicID int64, err error)
+	GetAnnouncement(ctx context.Context, tgid int64, id int64) (txt string, publicID int64, fileID string, err error)
 	SetAdminMsgID(ctx context.Context, id int64, adm_msg_id int64) error
 	SetPublicID(ctx context.Context, id int64, publicID int64) error
 	AddPhoto(ctx context.Context, annID int64, fileID string) error
@@ -42,6 +43,7 @@ type Core interface {
 	SaveAdminChatID(chatID int64)
 	AddContacts(ctx context.Context, tgUserID int64, txt string) (string, error)
 	Contacts(ctx context.Context, tgUserID int64) string
+	SendDeleteRequest(ctx context.Context, tgUserID int64, annID int64, chatID telego.ChatID) error
 }
 
 type CommandsWorker interface {

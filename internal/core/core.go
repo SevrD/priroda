@@ -2,6 +2,7 @@ package core
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"main/internal/config"
@@ -37,7 +38,7 @@ func (c *Core) SendMessageAfterAddAnnouncement(ctx context.Context, tgUserID int
 
 	annID := c.chat.GetAnnId(ctx, tgUserID)
 
-	text, _, err := c.announcement.GetAnnouncement(ctx, tgUserID, annID)
+	text, _, _, err := c.announcement.GetAnnouncement(ctx, tgUserID, annID)
 	if err != nil {
 		log.Println("Get text announcements from BD:", err)
 		c.users.SendError(chatID)
@@ -216,4 +217,53 @@ func (c *Core) SendDefaultMessage(chatID telego.ChatID) {
 
 func (c *Core) SaveAdminChatID(chatID int64) {
 	c.chatIDAdmin = chatID
+}
+
+func (c *Core) SendDeleteRequest(ctx context.Context, tgUserID int64, annID int64, chatID telego.ChatID) error {
+
+	if c.chatIDAdmin == 0 {
+		return errors.New("не известен id чата админа")
+	}
+
+	text, _, fileID, err := c.announcement.GetAnnouncement(ctx, tgUserID, annID)
+	if err != nil {
+		return err
+	}
+
+	text, err = c.AddContacts(ctx, tgUserID, text)
+
+	if err != nil {
+		return err
+	}
+
+	chatIDAdmin := tu.ID(c.chatIDAdmin)
+
+	message := tu.Message(chatIDAdmin, "Запрос на удаление следующего объявления:")
+	_, err = c.bot.SendMessage(message)
+
+	if err != nil {
+		return err
+	}
+
+	if fileID != "" {
+
+		photoFile := tu.FileFromID(fileID)
+
+		photoParams := tu.Photo(chatIDAdmin, photoFile).WithCaption(text)
+
+		_, err = c.bot.SendPhoto(photoParams)
+
+	} else {
+		message := tu.Message(chatIDAdmin, text)
+		_, err = c.bot.SendMessage(message)
+	}
+
+	if err != nil {
+		return err
+	}
+
+	err = c.chat.Save(ctx, tgUserID, models.StatusCode(0), 0)
+
+	return err
+
 }

@@ -74,3 +74,7 @@ func (c *Users) SendError(chatID telego.ChatID) {
 	message := tu.Message(chatID, errorText)
 	c.bot.SendMessage(message)
 }
+
+func (c *Users) LoginAdmin() string {
+	return c.loginAdmin
+}
