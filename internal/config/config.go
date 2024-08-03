@@ -14,6 +14,7 @@ type Config struct {
 	Rules       string `yaml:"rules"`
 	LoginAdmin  string `yaml:"loginAdmin"`
 	ChannelID   int64  `yaml:"channelID"`
+	ChannelLink string `yaml:"channelLink"`
 	ChatAdminID int64  `yaml:"chatAdminID"`
 
 	// Services    struct {

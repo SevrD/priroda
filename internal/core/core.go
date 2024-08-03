@@ -38,7 +38,7 @@ func (c *Core) SendMessageAfterAddAnnouncement(ctx context.Context, tgUserID int
 
 	annID := c.chat.GetAnnId(ctx, tgUserID)
 
-	text, _, _, err := c.announcement.GetAnnouncement(ctx, tgUserID, annID)
+	text, _, err := c.announcement.GetAnnouncement(ctx, tgUserID, annID)
 	if err != nil {
 		log.Println("Get text announcements from BD:", err)
 		c.users.SendError(chatID)
@@ -225,45 +225,23 @@ func (c *Core) SendDeleteRequest(ctx context.Context, tgUserID int64, annID int6
 		return errors.New("не известен id чата админа")
 	}
 
-	text, _, fileID, err := c.announcement.GetAnnouncement(ctx, tgUserID, annID)
-	if err != nil {
-		return err
-	}
-
-	text, err = c.AddContacts(ctx, tgUserID, text)
-
+	_, publicID, err := c.announcement.GetAnnouncement(ctx, tgUserID, annID)
 	if err != nil {
 		return err
 	}
 
 	chatIDAdmin := tu.ID(c.chatIDAdmin)
 
-	message := tu.Message(chatIDAdmin, "Запрос на удаление следующего объявления:")
+	text := fmt.Sprintf("Запрос на удаление объявления %s%d", config.AppConfig.ChannelLink, publicID)
+	message := tu.Message(chatIDAdmin, text)
 	_, err = c.bot.SendMessage(message)
 
 	if err != nil {
 		return err
 	}
 
-	if fileID != "" {
+	c.chat.Save(ctx, tgUserID, models.StatusCode(0), 0)
 
-		photoFile := tu.FileFromID(fileID)
-
-		photoParams := tu.Photo(chatIDAdmin, photoFile).WithCaption(text)
-
-		_, err = c.bot.SendPhoto(photoParams)
-
-	} else {
-		message := tu.Message(chatIDAdmin, text)
-		_, err = c.bot.SendMessage(message)
-	}
-
-	if err != nil {
-		return err
-	}
-
-	err = c.chat.Save(ctx, tgUserID, models.StatusCode(0), 0)
-
-	return err
+	return nil
 
 }

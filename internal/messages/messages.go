@@ -110,7 +110,7 @@ func (m *Messages) Number(ctx context.Context, message *telego.Message) {
 		m.bot.SendMessage(msg)
 	}
 
-	_, msgID, _, err := m.announcement.GetAnnouncement(ctx, message.From.ID, int64(id))
+	_, msgID, err := m.announcement.GetAnnouncement(ctx, message.From.ID, int64(id))
 
 	if err != nil {
 		msg := tu.Message(

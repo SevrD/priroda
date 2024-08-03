@@ -101,7 +101,7 @@ func (q *Queries) GetAnnId(ctx context.Context, tgid sql.NullInt64) (sql.NullInt
 }
 
 const getAnnouncement = `-- name: GetAnnouncement :one
-SELECT txt, publicID, fileID
+SELECT txt, publicID
 FROM announcements
 WHERE tgID = ? AND id = ?
 `
@@ -114,13 +114,12 @@ type GetAnnouncementParams struct {
 type GetAnnouncementRow struct {
 	Txt      sql.NullString `json:"txt"`
 	Publicid sql.NullInt64  `json:"publicid"`
-	Fileid   sql.NullString `json:"fileid"`
 }
 
 func (q *Queries) GetAnnouncement(ctx context.Context, arg GetAnnouncementParams) (GetAnnouncementRow, error) {
 	row := q.db.QueryRowContext(ctx, getAnnouncement, arg.Tgid, arg.ID)
 	var i GetAnnouncementRow
-	err := row.Scan(&i.Txt, &i.Publicid, &i.Fileid)
+	err := row.Scan(&i.Txt, &i.Publicid)
 	return i, err
 }
 

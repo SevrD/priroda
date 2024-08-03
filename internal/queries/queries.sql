@@ -38,7 +38,7 @@ INSERT INTO announcements (
 RETURNING id;
 
 -- name: GetAnnouncement :one
-SELECT txt, publicID, fileID
+SELECT txt, publicID
 FROM announcements
 WHERE tgID = ? AND id = ?;
 
