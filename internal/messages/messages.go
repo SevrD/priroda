@@ -126,7 +126,7 @@ func (m *Messages) Number(ctx context.Context, message *telego.Message) {
 	err = m.bot.DeleteMessage(deleteMessageParams)
 
 	if err != nil {
-		if fmt.Sprint(err) == "telego: deleteMessage(): api: 400 \"Bad Request: message to delete not found\"" || fmt.Sprint(err) == "telego: deleteMessage(): api: 400 \"Bad Request: message can`t be deleted\"" {
+		if fmt.Sprint(err) == "telego: deleteMessage(): api: 400 \"Bad Request: message to delete not found\"" || fmt.Sprint(err) == "telego: deleteMessage(): api: 400 \"Bad Request: message can't be deleted\"" {
 			err = m.core.SendDeleteRequest(ctx, message.From.ID, int64(id), chatID)
 			if err != nil {
 				log.Println("Send delete request error:", err)
