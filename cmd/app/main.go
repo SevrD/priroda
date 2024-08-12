@@ -111,7 +111,7 @@ func main() {
 					go messages.Text(ctx, update.Message) // text input
 
 				case 2:
-					go messages.Photo(ctx, update.Message)
+					messages.Photo(ctx, update.Message)
 
 				case 3:
 					go messages.Number(ctx, update.Message)
